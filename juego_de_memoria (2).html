@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Juego de memoria – Países y nacionalidades</title>
+<style>
+:root{--ink:#18243a;--muted:#64748b;--paper:#f5f7fb;--card:#fff;--accent:#3858a8;--good:#16794b;--bad:#b45309;--line:#dce3ef}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#eef3ff,#f8fafc 55%,#edf7f4);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+main{max-width:980px;margin:0 auto;padding:28px 18px 48px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:800;color:var(--accent)}h1{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.1;margin:7px 0 8px}.intro{color:var(--muted);margin:0;max-width:620px}.panel{background:#ffffffd9;border:1px solid var(--line);border-radius:18px;padding:16px;margin:22px 0;box-shadow:0 8px 28px #263b6410}.controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.field{display:grid;gap:5px;min-width:180px;flex:1}label{font-size:.82rem;font-weight:700;color:#34435e}select,button{font:inherit;border-radius:10px;border:1px solid var(--line);padding:10px 12px;background:white;color:var(--ink)}button{cursor:pointer;font-weight:750}button.primary{background:var(--accent);color:white;border-color:var(--accent)}button:hover{filter:brightness(.97)}button:focus-visible,select:focus-visible,.card:focus-visible{outline:3px solid #91a9f5;outline-offset:3px}.stats{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.stat{background:white;border:1px solid var(--line);border-radius:12px;padding:9px 14px;min-width:105px}.stat small{display:block;color:var(--muted);font-size:.72rem}.stat strong{font-size:1.1rem;font-variant-numeric:tabular-nums}.message{min-height:28px;font-weight:700;color:var(--accent);margin:8px 0 14px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card{border:0;padding:0;background:transparent;min-height:116px;perspective:800px}.inner{position:relative;display:block;width:100%;height:116px;transform-style:preserve-3d;transition:transform .28s}.card.revealed .inner,.card.matched .inner{transform:rotateY(180deg)}.face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:15px;border:1px solid var(--line);backface-visibility:hidden;padding:12px;box-shadow:0 4px 12px #263b6410}.back{background:linear-gradient(145deg,#344f9a,#5875c5);color:white;font-size:2rem;font-weight:800}.front{background:white;transform:rotateY(180deg);font-size:1.12rem;font-weight:750;overflow-wrap:anywhere}.front.flag{font-size:3.3rem}.card.matched .front{border:2px solid #55a77e;background:#f0fbf5;color:#176342}.card:disabled{cursor:default}.footer{color:var(--muted);font-size:.85rem;margin-top:16px}.success{color:var(--good)}@media(max-width:620px){main{padding:20px 12px 34px}.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.card,.inner{min-height:100px;height:100px}.front{font-size:.98rem;padding:8px}.front.flag{font-size:2.6rem}.back{font-size:1.7rem}.panel{padding:13px}}@media(max-width:390px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
+<body><main>
+<header class="top"><div><div class="eyebrow">Español · Nivel A1</div><h1>Juego de memoria</h1><p class="intro">Países y nacionalidades. Encuentra las parejas, recuerda las banderas y practica vocabulario en español.</p></div></header>
+<section class="panel" aria-label="Opciones del juego"><div class="controls"><div class="field"><label for="mode">Tipo de parejas</label><select id="mode"><option value="flag-country">Bandera ↔ País</option><option value="country-nationality">País ↔ Nacionalidad</option><option value="flag-nationality">Bandera ↔ Nacionalidad</option></select></div><div class="field"><label for="count">Número de parejas</label><select id="count"><option value="6">6 parejas · Fácil</option><option value="8" selected>8 parejas · Medio</option><option value="12">12 parejas · Difícil</option></select></div><button class="primary" id="restart">Nuevo juego</button></div></section>
+<div class="stats" aria-live="polite"><div class="stat"><small>Intentos</small><strong id="moves">0</strong></div><div class="stat"><small>Parejas</small><strong id="pairs">0 / 8</strong></div><div class="stat"><small>Tiempo</small><strong id="time">00:00</strong></div></div>
+<div id="message" class="message" aria-live="polite">Selecciona dos tarjetas para encontrar una pareja.</div>
+<section id="board" class="grid" aria-label="Tarjetas del juego"></section>
+<p class="footer">Consejo: antes de girar la segunda tarjeta, di en voz alta el país o la nacionalidad. ¡A practicar!</p>
+</main>
+<script>
+const data=[
+ {country:'España',flag:'🇪🇸',masc:'español',fem:'española'},
+ {country:'México',flag:'🇲🇽',masc:'mexicano',fem:'mexicana'},
+ {country:'China',flag:'🇨🇳',masc:'chino',fem:'china'},
+ {country:'Francia',flag:'🇫🇷',masc:'francés',fem:'francesa'},
+ {country:'Italia',flag:'🇮🇹',masc:'italiano',fem:'italiana'},
+ {country:'Japón',flag:'🇯🇵',masc:'japonés',fem:'japonesa'},
+ {country:'Canadá',flag:'🇨🇦',masc:'canadiense',fem:'canadiense'},
+ {country:'Brasil',flag:'🇧🇷',masc:'brasileño',fem:'brasileña'},
+ {country:'Panamá',flag:'🇵🇦',masc:'panameño',fem:'panameña'},
+ {country:'Argentina',flag:'🇦🇷',masc:'argentino',fem:'argentina'},
+ {country:'Alemania',flag:'🇩🇪',masc:'alemán',fem:'alemana'},
+ {country:'Estados Unidos',flag:'🇺🇸',masc:'estadounidense',fem:'estadounidense'},
+ {country:'Chile',flag:'🇨🇱',masc:'chileno',fem:'chilena'},
+ {country:'India',flag:'🇮🇳',masc:'indio',fem:'india'},
+ {country:'Portugal',flag:'🇵🇹',masc:'portugués',fem:'portuguesa'},
+ {country:'Perú',flag:'🇵🇪',masc:'peruano',fem:'peruana'}
+];
+const board=document.querySelector('#board'),mode=document.querySelector('#mode'),count=document.querySelector('#count');let first=null,lock=false,moves=0,found=0,total=8,seconds=0,timer=null,started=false;
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+let audioContext;
+
+function playFeedback(isCorrect) {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  audioContext ??= new AudioContextClass();
+  if (audioContext.state === 'suspended') audioContext.resume();
+
+  const notes = isCorrect
+    ? [{ frequency: 660, delay: 0 }, { frequency: 880, delay: 0.13 }]
+    : [{ frequency: 220, delay: 0 }];
+
+  const now = audioContext.currentTime;
+  notes.forEach(({ frequency, delay }) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const start = now + delay;
+    const duration = isCorrect ? 0.12 : 0.24;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(0.15, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  });
+}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function startClock(){if(!started){started=true;timer=setInterval(()=>{seconds++;document.querySelector('#time').textContent=fmt(seconds)},1000)}}
+function cardText(d,side){if(side==='flag')return {text:d.flag,cls:'flag'};if(side==='country')return {text:d.country,cls:''};return {text:d.masc+' / '+d.fem,cls:''}}
+function newGame(){clearInterval(timer);timer=null;started=false;seconds=0;moves=0;found=0;first=null;lock=false;total=Number(count.value);document.querySelector('#moves').textContent='0';document.querySelector('#pairs').textContent=`0 / ${total}`;document.querySelector('#time').textContent='00:00';document.querySelector('#message').textContent='Selecciona dos tarjetas para encontrar una pareja.';document.querySelector('#message').className='message';
+ const chosen=shuffle([...data]).slice(0,total);let cards=[];chosen.forEach((d,i)=>{let a,b;if(mode.value==='flag-country'){a={...cardText(d,'flag'),key:d.country,id:i+'a'};b={...cardText(d,'country'),key:d.country,id:i+'b'}}else if(mode.value==='country-nationality'){a={...cardText(d,'country'),key:d.country,id:i+'a'};b={...cardText(d,'nationality'),key:d.country,id:i+'b'}}else{a={...cardText(d,'flag'),key:d.country,id:i+'a'};b={...cardText(d,'nationality'),key:d.country,id:i+'b'}}cards.push(a,b)});
+ board.innerHTML='';shuffle(cards).forEach(c=>{const btn=document.createElement('button');btn.className='card';btn.type='button';btn.dataset.key=c.key;btn.setAttribute('aria-label','Tarjeta oculta');btn.innerHTML=`<span class="inner"><span class="face back">?</span><span class="face front ${c.cls}">${c.text}</span></span>`;btn.addEventListener('click',()=>flip(btn,c));board.appendChild(btn)});
+}
+function flip(btn,c){if(lock||btn.classList.contains('revealed')||btn.classList.contains('matched'))return;startClock();btn.classList.add('revealed');btn.setAttribute('aria-label',c.text);if(!first){first={btn,c};return}moves++;document.querySelector('#moves').textContent=moves;if(first.c.key===c.key){playFeedback(true);first.btn.classList.add('matched');btn.classList.add('matched');first.btn.disabled=true;btn.disabled=true;found++;document.querySelector('#pairs').textContent=`${found} / ${total}`;document.querySelector('#message').textContent='¡Muy bien! Has encontrado una pareja.';document.querySelector('#message').className='message success';first=null;if(found===total){clearInterval(timer);document.querySelector('#message').textContent=`¡Excelente! Has encontrado todas las parejas en ${moves} intentos y ${fmt(seconds)}.`}}else{playFeedback(false);lock=true;document.querySelector('#message').textContent='No coinciden. ¡Inténtalo otra vez!';const prev=first.btn;first=null;setTimeout(()=>{prev.classList.remove('revealed');btn.classList.remove('revealed');prev.setAttribute('aria-label','Tarjeta oculta');btn.setAttribute('aria-label','Tarjeta oculta');lock=false},850)}}
+document.querySelector('#restart').addEventListener('click',newGame);mode.addEventListener('change',newGame);count.addEventListener('change',newGame);newGame();
+</script></body></html>
